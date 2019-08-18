@@ -2,6 +2,7 @@ import Dev from "../models/Dev";
 
 class LikeController {
   async store(req, res) {
+    console.log(req.socket, req.connectedUsers);
     const { user } = req.headers;
     const { devId } = req.params;
 
@@ -13,7 +14,16 @@ class LikeController {
     }
 
     if (targetDev.likes.includes(loggedDev._id)) {
-      console.log("DEU MATCH");
+      const loggedSocket = req.connectedUsers[user];
+      const targetSocket = req.connectedUsers[devId];
+
+      if (loggedSocket) {
+        req.socket.to(loggedSocket).emit("match", targetDev);
+      }
+
+      if (targetSocket) {
+        req.socket.to(targetSocket).emit("match", loggedDev);
+      }
     }
 
     loggedDev.likes.push(targetDev._id);
